@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản Lý Chi Phí Thức Ăn Chăn Nuôi</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -864,6 +865,7 @@
 // ==================== FIREBASE CONFIG ====================
 // ✅ THAY THẾ CONFIG NÀY BẰNG CONFIG CỦA BẠN
 const FIREBASE_CONFIG = {
+  const cfg = {
   apiKey: "AIzaSyC2MZPo4r_nCZjo-J_PLxqk8vqjqwgQC4I",
   authDomain: "quan-li-mua-hang-nl-hoa-phat.firebaseapp.com",
   projectId: "quan-li-mua-hang-nl-hoa-phat",
@@ -902,10 +904,25 @@ window.addEventListener('load', () => {
 function initFirebase(config) {
   try {
     if (!firebase.apps.length) firebase.initializeApp(config);
-    db = firebase.firestore();
-    document.getElementById('db-status').innerHTML = '🟢 Đã kết nối Firebase';
-    document.getElementById('configNotice').classList.remove('show');
-    loadAll();
+
+    const auth = firebase.auth();
+
+    auth.signInAnonymously()
+      .then(() => {
+        db = firebase.firestore();
+
+        document.getElementById('db-status').innerHTML = '🟢 Đã đăng nhập & kết nối Firebase';
+
+        document.getElementById('configNotice').classList.remove('show');
+
+        loadAll();
+      })
+      .catch((error) => {
+        console.error(error);
+        showToast('Lỗi đăng nhập anonymous: ' + error.message, 'error');
+        document.getElementById('db-status').innerHTML = '🔴 Lỗi Auth';
+      });
+
   } catch(e) {
     showToast('Lỗi kết nối Firebase: ' + e.message, 'error');
     document.getElementById('db-status').innerHTML = '🔴 Lỗi kết nối';
@@ -913,7 +930,14 @@ function initFirebase(config) {
 }
 
 function initFirebaseWithConfig() {
-  
+  const cfg = {
+  apiKey: "AIzaSyC2MZPo4r_nCZjo-J_PLxqk8vqjqwgQC4I",
+  authDomain: "quan-li-mua-hang-nl-hoa-phat.firebaseapp.com",
+  projectId: "quan-li-mua-hang-nl-hoa-phat",
+  storageBucket: "quan-li-mua-hang-nl-hoa-phat.firebasestorage.app",
+  messagingSenderId: "281217833678",
+  appId: "1:281217833678:web:bd7847d590ea53c4290e9f"
+};
   if (!cfg.apiKey || !cfg.projectId) { showToast('Vui lòng nhập đủ thông tin', 'error'); return; }
   initFirebase(cfg);
 }
@@ -1770,57 +1794,6 @@ function showToast(msg, type = 'info') {
   tc.appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; t.style.transition = 'all 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
 }
-</script>
-  <script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyBg0-ul6aky1hVtHja4xp_QegtCayO38VU",
-    authDomain: "tong-dinh-ban-hang.firebaseapp.com",
-    projectId: "tong-dinh-ban-hang",
-    storageBucket: "tong-dinh-ban-hang.appspot.com",
-    messagingSenderId: "1082592334114",
-    appId: "1:1082592334114:web:6ec6b4376b88a1c2e2557b"
-};
-
-// tránh init nhiều lần
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
-
-provider.setCustomParameters({
-    prompt: "select_account"
-});
-
-// login
-document.getElementById('login-btn').addEventListener('click', () => {
-    signInWithPopup(auth, provider).catch(err => alert(err.message));
-});
-
-// logout
-document.getElementById('logout-btn').addEventListener('click', () => {
-    signOut(auth);
-});
-
-// trạng thái login
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-screen').style.display = 'block';
-        document.getElementById('user-info').innerText = "Xin chào, " + user.displayName;
-
-        initializeAppState(); // 🔥 BẮT BUỘC PHẢI CÓ
-    } else {
-        document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('app-screen').style.display = 'none';
-    }
-});
 </script>
 </body>
 </html>
